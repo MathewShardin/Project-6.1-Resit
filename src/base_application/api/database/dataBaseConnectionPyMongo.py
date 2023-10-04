@@ -5,7 +5,8 @@ from flask import Flask
 
 def get_database():
     # Provide the mongodb atlas url to connect python to mongodb using pymongo. Use your own connection string
-    CONNECTION_STRING = "mongodb+srv://IT2C:ZHty3DkM0tIozYks@it2csportsaccounting.byzfgpv.mongodb.net/?retryWrites=true&w=majority"
+    # CONNECTION_STRING = "mongodb+srv://IT2C:ZHty3DkM0tIozYks@it2csportsaccounting.byzfgpv.mongodb.net/?retryWrites=true&w=majority"
+    CONNECTION_STRING = "mongodb+srv://admin:55TPmsPXgRraJuvE@cluster0.lxrxapc.mongodb.net/?retryWrites=true&w=majority"
 
     # Create a connection using MongoClient. You can import MongoClient or use pymongo.MongoClient
     client = MongoClient(CONNECTION_STRING)
@@ -28,17 +29,18 @@ def get_flask_app():
 def get_connection_postgre():
     # Establishing the connection
     conn = psycopg2.connect(
-        database="Quintor", user='admin_role', password='admin', host='localhost', port='5432'
+        database="postgres", user='adminit2c@project6-1-it2c', password='55TPmsPXgRraJuvE', host='project6-1-it2c.postgres.database.azure.com', port='5432'
     )
+    print(conn)
     return conn
 
 
 def get_connection_postgre_user():
     # Establishing the connection
-    conn = psycopg2.connect(
-        database="Quintor", user='myuser', password='user', host='localhost', port='5432'
-    )
-    return conn
+    # conn = psycopg2.connect(
+    #     database="postgres", user='myuser', password='user', host='localhost', port='5432'
+    # )
+    # return conn
     return None
 
 
