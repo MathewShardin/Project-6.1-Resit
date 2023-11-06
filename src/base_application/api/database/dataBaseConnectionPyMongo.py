@@ -29,7 +29,8 @@ def get_flask_app():
 def get_connection_postgre():
     # Establishing the connection
     conn = psycopg2.connect(
-        database="postgres", user='adminit2c@project6-1-it2c', password='55TPmsPXgRraJuvE', host='project6-1-it2c.postgres.database.azure.com', port='5432'
+        database="postgres", user='adminit2c@project6-1-it2c', password='55TPmsPXgRraJuvE',
+        host='project6-1-it2c.postgres.database.azure.com', port='5432'
     )
     print(conn)
     return conn

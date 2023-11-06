@@ -147,13 +147,18 @@ def insert_association():
     try:
         # Get the JSON file from the POST request
         json_data = request.get_json()
+        print(json_data)
         # Validate with schema
-        if not validate_association_json(json_data):
-            jsonify({'Error': 'Error Occured'})
+        # if not validate_association_json(json_data):
+        #     print("Schema failed")
+            # jsonify({'Error': 'Error Occured'})
+        print("Accountid")
+        print(json_data['accountID'])
 
         accountID = json_data['accountID']
         name = json_data['name']
         hashed_password = json_data['password']
+        print(accountID)
 
         cursor = postgre_connection.cursor()
 
