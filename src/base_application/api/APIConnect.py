@@ -146,19 +146,15 @@ def delete_member():
 def insert_association():
     try:
         # Get the JSON file from the POST request
-        json_data = request.get_json()
-        print(json_data)
+        json_data = json.loads(request.get_json())
         # Validate with schema
         # if not validate_association_json(json_data):
         #     print("Schema failed")
             # jsonify({'Error': 'Error Occured'})
-        print("Accountid")
-        print(json_data['accountID'])
 
-        accountID = json_data['accountID']
-        name = json_data['name']
-        hashed_password = json_data['password']
-        print(accountID)
+        accountID = str(json_data['accountID'])
+        name = str(json_data['name'])
+        hashed_password = str(json_data['password'])
 
         cursor = postgre_connection.cursor()
 
