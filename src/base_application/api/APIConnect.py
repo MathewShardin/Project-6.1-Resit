@@ -451,6 +451,10 @@ def search_keyword(keyword):
         return jsonify({'message': error})
 
 
+if __name__ == '__main__':
+    app.run()
+
+
 
 
 
