@@ -41,6 +41,7 @@ class MainWindow:
                 # Save to NoSQL DB
                 url = api_server_ip + '/api/uploadFile'
                 json_data = parse_mt940_file(file_path)
+                print(json_data)
                 headers = {'Content-Type': 'application/json'}
                 response = requests.post(url, json=json_data, headers=headers)
 

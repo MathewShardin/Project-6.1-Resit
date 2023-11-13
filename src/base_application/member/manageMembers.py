@@ -15,6 +15,7 @@ def manage_members():
     # connect to the database
     def retrieveDB():
         response = requests.get(api_server_ip + "/api/getMembers")
+        print(response)
         if len(response.json()) == 0:
             return
 
