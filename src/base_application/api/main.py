@@ -1,7 +1,10 @@
-from src.base_application.api import app
+from src.base_application.api.APIConnect import app
 
-if __name__ == '__main__':
-    app.run()
+
+app.run()
+
+# if __name__ == '__main__':
+#     app.run()
 
 
 

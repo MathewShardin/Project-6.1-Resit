@@ -21,9 +21,9 @@ def get_collection():
     return transactions_collection
 
 
-def get_flask_app():
-    app = Flask(__name__)
-    return app
+# def get_flask_app():
+#     app = Flask(__name__)
+#     return app
 
 
 def get_connection_postgre():
@@ -47,6 +47,6 @@ def get_connection_postgre_user():
 
 
 # This is added so that many files can reuse the function get_database()
-if __name__ == "__main__":
-    # Get the database
-    dbname = get_database()
+# if __name__ == "__main__":
+#     # Get the database
+#     dbname = get_database()

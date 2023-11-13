@@ -1,16 +1,23 @@
 import json
 import xml.etree.ElementTree as ET
-import xml.dom.minidom
 import psycopg2
 from flask import jsonify, request, make_response, Flask, Response
 from json2xml import json2xml
 from bson import json_util, ObjectId
 from bson.json_util import dumps as json_util_dumps
 
-# Get instances of Flask App and MongoDB collection from dataBaseConnectionPyMongo file
-from src.base_application.api import app, transactions_collection, postgre_connection, postgre_connection_user
+# Get instance of Flask
+# from src.base_application.api.main import app
+app = Flask(__name__)
+
+from src.base_application.api.dataBaseConnectionPyMongo import get_connection_postgre, get_connection_postgre_user,\
+    get_collection
 from src.base_application.api.api_utils import validate_json, validate_member_json, validate_association_json, \
     validate_xml
+# Get connection strings to Postgre and MongoDB
+transactions_collection = get_collection()
+postgre_connection = get_connection_postgre()
+postgre_connection_user = get_connection_postgre_user()
 
 
 @app.route("/")
