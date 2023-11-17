@@ -267,11 +267,76 @@ def insert_transaction():
         return jsonify({'error': error_message})
 
 
+@app.route("/api/insertmtsql", methods=["POST"])
+def insert_mt_file():
+    try:
+        # Get the JSON file from the POST request & parse it into JSON
+        json_transactions = json.loads(request.get_json())
+
+        # Validate JSON
+        if not validate_json(json_transactions):
+            print("Validation failed")
+            # return jsonify({'Error': 'Error Occured'})
+
+        # Get amount of transaction in a JSON
+        trans_len = len(json_transactions["transactions"])
+
+        # Extract values from a JSON into variables for the File table
+        reference_number = str(json_transactions["transaction_reference"])
+        statement_number = str(json_transactions["statement_number"])
+        sequence_detail = str(json_transactions["sequence_number"])
+        available_balance = json_transactions["available_balance"]["amount"]["amount"]
+        forward_available_balance = json_transactions["forward_available_balance"]["amount"]["amount"]
+        account_identification = str(json_transactions["account_identification"])
+
+        # Create lists to pass to a Transaction in PostGre
+        amount_list = []
+        currency_list = []
+        trans_date_list = []
+        trans_details_list = []
+        description_list = []
+        type_trans_list = []
+        category_list = []
+        member_list = []
+
+        # Prepare transaction data to insert into DB
+        for trans_set in json_transactions["transactions"]:
+            amount_list.append(trans_set["amount"]["amount"])
+            currency_list.append(trans_set["amount"]["currency"])
+            trans_date_list.append(trans_set["date"])
+            description_list.append(None)
+            type_trans_list.append(trans_set["status"])
+            # Replace special symbols if necessary to avoid errors in postgre sql
+            transaction_details = str(trans_set["transaction_details"])
+            transaction_details = transaction_details.replace("/", "-")
+            trans_details_list.append(transaction_details)
+            category_list.append(None)
+            member_list.append(None)
+
+        cursor = postgre_connection.cursor()
+
+        # Call a stored procedure
+        cursor.execute('CALL insert_transaction_5(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', (
+            reference_number, statement_number, sequence_detail, available_balance, forward_available_balance, account_identification,
+        trans_details_list, description_list, amount_list, currency_list, trans_date_list, category_list, member_list, type_trans_list))
+
+        # commit the transaction
+        postgre_connection.commit()
+
+        # close the cursor
+        cursor.close()
+
+        return jsonify({'message': 'File inserted successfully'})
+    except (Exception, psycopg2.DatabaseError) as error:
+        return jsonify({'message': error})
+
+
 @app.route("/api/insertFile", methods=["POST"])
 def insert_file():
     try:
         # Get the JSON file from the POST request
         json_transactions = request.get_json()
+
 
         # Validate JSON
         if not validate_json(json_transactions):
