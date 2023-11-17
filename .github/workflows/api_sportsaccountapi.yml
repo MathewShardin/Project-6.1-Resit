@@ -66,4 +66,4 @@ jobs:
         with:
           app-name: 'SportsAccountApi'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_E3DE2FB9C7C340869BC6109AD6F5ECB2 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_5DC91CC735DA432CA502D0A28F71BC14 }}
