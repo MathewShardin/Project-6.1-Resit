@@ -45,13 +45,8 @@ class MainWindow:
                 headers = {'Content-Type': 'application/json'}
                 response = requests.post(url, json=json_data, headers=headers)
 
-                # Save to SQL DB FILE
-                url = api_server_ip + '/api/insertFile'
-                headers = {'Content-Type': 'application/json'}
-                response = requests.post(url, json=json_data, headers=headers)
-
-                # Save to SQL DB Transaction
-                url = api_server_ip + '/api/insertTransaction'
+                # Save to SQL DB
+                url = api_server_ip + '/api/insertmtsql'
                 headers = {'Content-Type': 'application/json'}
                 response = requests.post(url, json=json_data, headers=headers)
 
