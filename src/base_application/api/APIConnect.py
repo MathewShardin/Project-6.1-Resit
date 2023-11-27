@@ -273,10 +273,7 @@ def insert_transaction():
 def insert_mt_file():
     try:
         # Get the JSON file from the POST request & parse it into JSON
-        # json_transactions = json.loads(request.get_json())
         json_transactions = request.get_json()
-
-        print(json_transactions)
 
         # Validate JSON
         if not validate_json(json_transactions):
@@ -301,8 +298,6 @@ def insert_mt_file():
         trans_details_list = []
         description_list = []
         type_trans_list = []
-        # category_list = []
-        # member_list = []
 
         # Prepare transaction data to insert into DB
         for trans_set in json_transactions["transactions"]:
@@ -315,23 +310,8 @@ def insert_mt_file():
             transaction_details = str(trans_set["transaction_details"])
             transaction_details = transaction_details.replace("/", "-")
             trans_details_list.append(str(transaction_details))
-            # category_list.append(None)
-            # member_list.append(None)
-
-        print(trans_date_list)
-
-        # Convert numeric data to arrays to avoid bugs in Postgre. It is important to pass proper data types to DB
-        # amount_arr = array('d', amount_list)
-        # currency_arr = array('u', currency_list)
-        # trans_date_arr = array('u', trans_date_list)
-        # trans_details_arr = array('u', trans_details_list)
-        # description_arr = array('u', description_list)
-        # type_trans_arr = array('u', type_trans_list)
-        # category_arr = array('i', category_list)
-        # member_arr = array('i', member_list)
 
         cursor = postgre_connection.cursor()
-
 
         # Call a stored procedure
         cursor.execute('CALL insert_transaction_5(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', (
