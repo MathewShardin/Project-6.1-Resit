@@ -504,7 +504,7 @@ def search_keyword(keyword):
         cursor = postgre_connection.cursor()
 
         # Call the search_table2 function with a search term
-        cursor.execute("SELECT * FROM search_table2(%s)", (keyword,))
+        cursor.execute("SELECT * FROM search_all_table(%s)", (keyword,))
 
         # Fetch the results from the function call
         results = cursor.fetchall()
