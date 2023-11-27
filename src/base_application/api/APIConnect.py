@@ -19,6 +19,7 @@ from src.base_application.api.api_utils import validate_json, validate_member_js
 transactions_collection = get_collection()
 postgre_connection = get_connection_postgre()
 postgre_connection_user = get_connection_postgre_user()
+postgre_connection.autocommit = True
 
 
 @app.route("/")
@@ -275,6 +276,8 @@ def insert_mt_file():
         # json_transactions = json.loads(request.get_json())
         json_transactions = request.get_json()
 
+        print(json_transactions)
+
         # Validate JSON
         if not validate_json(json_transactions):
             print("Validation failed")
@@ -287,8 +290,8 @@ def insert_mt_file():
         reference_number = str(json_transactions["transaction_reference"])
         statement_number = str(json_transactions["statement_number"])
         sequence_detail = str(json_transactions["sequence_number"])
-        available_balance = json_transactions["available_balance"]["amount"]["amount"]
-        forward_available_balance = json_transactions["forward_available_balance"]["amount"]["amount"]
+        available_balance = float(json_transactions["available_balance"]["amount"]["amount"])
+        forward_available_balance = float(json_transactions["forward_available_balance"]["amount"]["amount"])
         account_identification = str(json_transactions["account_identification"])
 
         # Create lists to pass to a Transaction in PostGre
@@ -298,22 +301,24 @@ def insert_mt_file():
         trans_details_list = []
         description_list = []
         type_trans_list = []
-        category_list = []
-        member_list = []
+        # category_list = []
+        # member_list = []
 
         # Prepare transaction data to insert into DB
         for trans_set in json_transactions["transactions"]:
             amount_list.append(float(trans_set["amount"]["amount"]))
             currency_list.append(str(trans_set["amount"]["currency"]))
             trans_date_list.append(str(trans_set["date"]))
-            description_list.append(None)
+            description_list.append(str("None"))
             type_trans_list.append(str(trans_set["status"]))
             # Replace special symbols if necessary to avoid errors in postgre sql
             transaction_details = str(trans_set["transaction_details"])
             transaction_details = transaction_details.replace("/", "-")
             trans_details_list.append(str(transaction_details))
-            category_list.append(None)
-            member_list.append(None)
+            # category_list.append(None)
+            # member_list.append(None)
+
+        print(trans_date_list)
 
         # Convert numeric data to arrays to avoid bugs in Postgre. It is important to pass proper data types to DB
         # amount_arr = array('d', amount_list)
@@ -327,10 +332,11 @@ def insert_mt_file():
 
         cursor = postgre_connection.cursor()
 
+
         # Call a stored procedure
-        cursor.execute('CALL insert_transaction_5(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', (
+        cursor.execute('CALL insert_transaction_5(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', (
             reference_number, statement_number, sequence_detail, available_balance, forward_available_balance, account_identification,
-            trans_details_list, description_list, amount_list, currency_list, trans_date_list, category_list, member_list, type_trans_list))
+            trans_details_list, description_list, amount_list, currency_list, trans_date_list, type_trans_list))
 
         # commit the transaction
         postgre_connection.commit()
