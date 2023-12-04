@@ -1,40 +1,51 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "properties": {
+    "account_identification": {"type": "string"},
+    "available_balance": {"$ref": "#/definitions/balance"},
+    "final_closing_balance": {"$ref": "#/definitions/balance"},
+    "final_opening_balance": {"$ref": "#/definitions/balance"},
+    "forward_available_balance": {"$ref": "#/definitions/balance"},
+    "sequence_number": {"type": ["number", "null"]},
+    "statement_number": {"type": "string"},
+    "transaction_reference": {"type": "string"},
     "transactions": {
       "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "transaction_date": {
-            "type": "string",
-            "format": "date"
-          },
-          "amount": {
-            "type": "object"
-          },
-          "currency": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "transaction_type": {
-            "type": "string",
-            "enum": ["C", "D"]
-          },
-          "reference": {
-            "type": "string"
-          },
-          "account_number": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": true
-      }
+      "items": {"$ref": "#/definitions/transaction"}
     }
   },
-  "required": ["transactions"],
-  "additionalProperties": true
+  "definitions": {
+    "balance": {
+      "type": "object",
+      "properties": {
+        "amount": {"$ref": "#/definitions/amount"},
+        "date": {"type": "string"},
+        "status": {"type": "string"}
+      }
+    },
+    "amount": {
+      "type": "object",
+      "properties": {
+        "amount": {"type": "string"},
+        "currency": {"type": "string"}
+      }
+    },
+    "transaction": {
+      "type": "object",
+      "properties": {
+        "amount": {"$ref": "#/definitions/amount"},
+        "bank_reference": {"type": "string"},
+        "currency": {"type": "string"},
+        "customer_reference": {"type": "string"},
+        "date": {"type": "string"},
+        "entry_date": {"type": "string"},
+        "extra_details": {"type": "string"},
+        "funds_code": {"type": ["string", "null"]},
+        "guessed_entry_date": {"type": "string"},
+        "id": {"type": "string"},
+        "status": {"type": "string"},
+        "transaction_details": {"type": "string"}
+      }
+    }
+  }
 }

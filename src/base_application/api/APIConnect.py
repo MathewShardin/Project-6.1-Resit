@@ -13,7 +13,7 @@ app = Flask(__name__)
 
 from src.base_application.api.dataBaseConnectionPyMongo import get_connection_postgre, get_connection_postgre_user,\
     get_collection
-from src.base_application.api.api_utils import validate_json, validate_member_json, validate_association_json, \
+from src.base_application.api.api_utils import validate_json, validate_member_xml, validate_association_json, \
     validate_xml
 # Get connection strings to Postgre and MongoDB
 transactions_collection = get_collection()
@@ -95,6 +95,7 @@ def downloadXML():
     # Validate XML
     if not validate_xml(xml_str):
         print('Validation failed')
+        # return jsonify({'Error': 'Error Occured'})
 
     # Create the Flask response object with XML data
     response = make_response(xml_str)
@@ -157,9 +158,9 @@ def insert_association():
         # Get the JSON file from the POST request
         json_data = json.loads(request.get_json())
         # Validate with schema
-        # if not validate_association_json(json_data):
-        #     print("Schema failed")
-            # jsonify({'Error': 'Error Occured'})
+        if not validate_association_json(json_data):
+            print("Schema failed")
+            return jsonify({'Error': 'Error Occured'})
 
         accountID = str(json_data['accountID'])
         name = str(json_data['name'])
@@ -179,21 +180,36 @@ def insert_association():
         return jsonify({'message': 'File inserted successfully'})
     except (Exception, psycopg2.DatabaseError) as error:
         error_message = str(error)
+        print("Schema failed")
         return jsonify({'error': error_message})
 
 
 @app.route("/api/insertMemberSQL", methods=["POST"])
 def insert_member():
     try:
-        # Get the JSON file from the POST request
-        json_temp = request.get_json()
-        json_data = json.loads(json_temp)
-        # Validate with schema
-        if not validate_member_json(json_data):
-            jsonify({'Error': 'Error Occured'})
+        # Get the XML file from the POST request
+        xml_data = request.data.decode('utf-8')
+        print(type(xml_data))
+        print("print api")
+        # parse the XML data
+        # root = ET.fromstring(xml_data)
+        treeroot = ET.XML(xml_data)
+        # Make sure the schema is properly encoded to be validated
+        xml_str = ET.tostring(treeroot)
+        print("print api")
+        print(type(xml_str))
+        print(treeroot)
+        print(str(treeroot.find('name').text))
 
-        name = json_data['name']
-        email = json_data['email']
+        # Validate with schema
+        # if not validate_member_xml(xml_str):
+        #     print("Validation error")
+        #     return jsonify({'Error': 'Error Occured'})
+
+        # Extract vaues from the XML file
+        name = str(treeroot.find('name').text)
+        email = str(treeroot.find('email').text)
+        print(name)
 
         cursor = postgre_connection.cursor()
 
@@ -207,7 +223,7 @@ def insert_member():
         cursor.close()
 
         return jsonify({'message': 'Member saved successfully'})
-    except (Exception, psycopg2.DatabaseError) as error:
+    except Exception as error:
         error_message = str(error)
         return jsonify({'error': error_message})
 
@@ -278,7 +294,7 @@ def insert_mt_file():
         # Validate JSON
         if not validate_json(json_transactions):
             print("Validation failed")
-            # return jsonify({'Error': 'Error Occured'})
+            return jsonify({'Error': 'Error Occured'})
 
         # Get amount of transaction in a JSON
         trans_len = len(json_transactions["transactions"])
