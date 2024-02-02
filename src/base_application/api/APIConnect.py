@@ -1,5 +1,11 @@
+import copy
 import json
+import os
 import xml.etree.ElementTree as ET
+from xml.dom import minidom
+
+from lxml import etree
+
 import psycopg2
 from flask import jsonify, request, make_response, Flask, Response
 from json2xml import json2xml
@@ -7,13 +13,17 @@ from bson import json_util, ObjectId
 from bson.json_util import dumps as json_util_dumps
 from array import array
 
+from xmlschema import XMLSchema
+
+# xml_member_schema_path = os.path.join(os.path.dirname(__file__), 'member_xml.xsd')
+
 # Get instance of Flask
 # from src.base_application.api.main import app
 app = Flask(__name__)
 
 from src.base_application.api.dataBaseConnectionPyMongo import get_connection_postgre, get_connection_postgre_user,\
     get_collection
-from src.base_application.api.api_utils import validate_json, validate_member_xml, validate_association_json, \
+from src.base_application.api.api_utils import validate_json, validate_association_json, validate_member_xml, \
     validate_xml
 # Get connection strings to Postgre and MongoDB
 transactions_collection = get_collection()
@@ -188,28 +198,17 @@ def insert_association():
 def insert_member():
     try:
         # Get the XML file from the POST request
-        xml_data = request.data.decode('utf-8')
-        print(type(xml_data))
-        print("print api")
-        # parse the XML data
-        # root = ET.fromstring(xml_data)
-        treeroot = ET.XML(xml_data)
-        # Make sure the schema is properly encoded to be validated
-        xml_str = ET.tostring(treeroot)
-        print("print api")
-        print(type(xml_str))
-        print(treeroot)
-        print(str(treeroot.find('name').text))
+        xml_file = request.files['file']
+        print(xml_file)
+        # if not validate_member_xml(xml_file):
+        #     print("Failed Validation")
+        #     return jsonify({'Error': 'Error Occured'}), 500
 
-        # Validate with schema
-        # if not validate_member_xml(xml_str):
-        #     print("Validation error")
-        #     return jsonify({'Error': 'Error Occured'})
-
-        # Extract vaues from the XML file
-        name = str(treeroot.find('name').text)
-        email = str(treeroot.find('email').text)
-        print(name)
+        # Parse the XML content if validation is passed
+        root = ET.fromstring(xml_file.read())
+        # Extract 'Name' and 'Email' fields
+        name = str(root.findtext('name'))
+        email = str(root.findtext('email'))
 
         cursor = postgre_connection.cursor()
 
