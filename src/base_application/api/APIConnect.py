@@ -24,7 +24,8 @@ app = Flask(__name__)
 from src.base_application.api.dataBaseConnectionPyMongo import get_connection_postgre, get_connection_postgre_user,\
     get_collection
 from src.base_application.api.api_utils import validate_json, validate_association_json, validate_member_xml, \
-    validate_xml
+    validate_xml, validate_edit_transaction_json
+
 # Get connection strings to Postgre and MongoDB
 transactions_collection = get_collection()
 postgre_connection = get_connection_postgre()
@@ -476,12 +477,14 @@ def update_transaction():
 
         json_data  = json.loads(request.get_json())
 
+        if not validate_edit_transaction_json(json_data):
+            print("Schema failed")
+            return jsonify({'Error': 'Error Occured'}), 500
+
         transactionID = int(json_data['trans_id'])
         description = str(json_data['desc'])
         categoryID = str(json_data['category'])
         memberID = str(json_data['member'])
-
-        print(transactionID, description, categoryID, memberID)
 
         cursor = postgre_connection.cursor()
 

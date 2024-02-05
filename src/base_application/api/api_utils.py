@@ -6,6 +6,7 @@ from xmlschema import XMLSchema
 xml_schema_path = os.path.join(os.path.dirname(__file__), 'xmlSchema.xsd')
 json_schema_path = os.path.join(os.path.dirname(__file__), 'mt_json_schema.json')
 json_association_schema_path = os.path.join(os.path.dirname(__file__), 'association_json_schema.json')
+json_edit_transaction_schema_path = os.path.join(os.path.dirname(__file__), 'edit_transaction_schema.json')
 xml_member_schema_path = os.path.join(os.path.dirname(__file__), 'member_xml.xsd')
 
 
@@ -49,6 +50,16 @@ def validate_xml(xml_file):
 def validate_association_json(json_inp):
     try:
         with open(json_association_schema_path) as r:
+            schema = json.load(r)
+            jsonschema.validate(json_inp, schema)
+        return True
+    except (Exception, jsonschema.ValidationError) as error:
+        print(error)
+        return False
+
+def validate_edit_transaction_json(json_inp):
+    try:
+        with open(json_edit_transaction_schema_path) as r:
             schema = json.load(r)
             jsonschema.validate(json_inp, schema)
         return True
