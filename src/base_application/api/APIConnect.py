@@ -255,7 +255,7 @@ def insert_transaction():
         # Validate JSON
         if not validate_json(json_trans):
             print("Validation failed")
-            return jsonify({'Error': 'Error Occured'})
+            return jsonify({'Error': 'Error Occurred'})
 
         bank_reference = str(json_trans["transaction_reference"])
 

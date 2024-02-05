@@ -50,7 +50,6 @@ def create_window():
         transaction_details(selected_row)
 
 
-
     root.resizable(False, False)  # Prevent the window from being resized
 
     # Create a frame to hold the left section
@@ -158,6 +157,28 @@ def create_window():
 
     button1 = ttk.Button(left_frame, text="Keyboard Search", command=lambda: keyword_search_button(entry.get(), table, search_summary_num))
     button1.place(x=70, y=400, width=150, height=24)
+
+    # Creating JSON and XML buttons
+
+    # Create a style for the radio buttons
+    style = ttk.Style()
+    style.configure("TRadiobutton", font=("Inter", 18))
+
+    # Create a frame to hold the radio buttons
+    radio_frame = tk.Frame(right_frame, bg="#F0AFAF")
+    radio_frame.place(x=0, y=700, width=600, height=100)
+
+    # Create the radio buttons
+    json_radio = ttk.Radiobutton(radio_frame, text="JSON", value="JSON", command=lambda: keyword_search_button())
+    xml_radio = ttk.Radiobutton(radio_frame, text="XML", value="XML", command=lambda : keyword_search_button())
+
+    # Pack the radio buttons (left and right)
+    json_radio.pack(side="left", padx=100)
+    xml_radio.pack(side="right", padx=100)
+
+    # # Add a button to handle the selection
+    # submit_button = ttk.Button(root, text="Submit", command=handle_selection)
+    # submit_button.pack(pady=20)
 
     def on_closing():
         root.destroy()
