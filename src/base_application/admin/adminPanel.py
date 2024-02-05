@@ -150,7 +150,7 @@ def adminPanel():
     button.place(x=450, y=175, height=30)
 
     manageMembers = tk.Button(frame1, text="Manage Memberships", font=("Inter", 12, "normal"),
-                              bg="#D9D9D9", fg="black", justify="left", command= lambda: manage_members_button())
+                              bg="#D9D9D9", fg="black", justify="left", command=lambda: manage_members_button())
     manageMembers.place(x=75, y=300, width=180, height=30)
 
     upload = tk.Button(frame1, text="Upload MT940 File", font=("Inter", 12, "normal"),
@@ -235,6 +235,24 @@ def adminPanel():
 
     update_button = ttk.Button(frame2, text="Update", command=lambda: update_button_click(table, search_summary_num))
     update_button.place(x=235, y=35, width=100, height=30)
+
+    # Create a style for the radio buttons
+    style = ttk.Style()
+    style.configure("TRadiobutton", font=("Inter", 18), background="#F0AFAF", borderwidth=0)
+
+    # Create a frame to hold the radio buttons
+    radio_frame = tk.Frame(frame2, bg="#F0AFAF")
+    radio_frame.place(x=0, y=700, width=600, height=100)
+
+    # Create the radio buttons
+    json_radio = ttk.Radiobutton(radio_frame, text="JSON", value="JSON", command=lambda: keyword_search_button(),
+                                 style="TRadiobutton")
+    xml_radio = ttk.Radiobutton(radio_frame, text="XML", value="XML", command=lambda: keyword_search_button(),
+                                style="TRadiobutton")
+
+    # Pack the radio buttons (left and right)
+    json_radio.pack(side="left", padx=100)
+    xml_radio.pack(side="right", padx=100)
 
     def on_closing():
         window.destroy()

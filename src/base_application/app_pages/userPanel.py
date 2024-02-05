@@ -162,23 +162,22 @@ def create_window():
 
     # Create a style for the radio buttons
     style = ttk.Style()
-    style.configure("TRadiobutton", font=("Inter", 18))
+    style.configure("TRadiobutton", font=("Inter", 18), background="#F0AFAF", borderwidth=0)
 
     # Create a frame to hold the radio buttons
     radio_frame = tk.Frame(right_frame, bg="#F0AFAF")
     radio_frame.place(x=0, y=700, width=600, height=100)
 
     # Create the radio buttons
-    json_radio = ttk.Radiobutton(radio_frame, text="JSON", value="JSON", command=lambda: keyword_search_button())
-    xml_radio = ttk.Radiobutton(radio_frame, text="XML", value="XML", command=lambda : keyword_search_button())
+    json_radio = ttk.Radiobutton(radio_frame, text="JSON", value="JSON", command=lambda: keyword_search_button(),
+                                 style="TRadiobutton")
+    xml_radio = ttk.Radiobutton(radio_frame, text="XML", value="XML", command=lambda: keyword_search_button(),
+                                style="TRadiobutton")
 
     # Pack the radio buttons (left and right)
     json_radio.pack(side="left", padx=100)
     xml_radio.pack(side="right", padx=100)
 
-    # # Add a button to handle the selection
-    # submit_button = ttk.Button(root, text="Submit", command=handle_selection)
-    # submit_button.pack(pady=20)
 
     def on_closing():
         root.destroy()
