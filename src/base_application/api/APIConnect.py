@@ -1,5 +1,7 @@
 import json
 import xml.etree.ElementTree as ET
+from xml.dom import minidom
+
 import psycopg2
 from flask import jsonify, request, make_response, Flask, Response
 from json2xml import json2xml
@@ -25,23 +27,7 @@ postgre_connection.autocommit = True
 @app.route("/")
 def index():
     answer = {
-        "message": "Welcome to Sports Accounting API",
-        "api": {
-            "test": "/api/test",
-            "getTransactionsAmount": "/api/getTransactionsCount",
-            "getTransactions": "/api/getTransactions",
-            "uploadMT940File": "/api/uploadFile",
-            "downloadJSON": "/api/downloadJSON",
-            "downloadXML": "/api/downloadXML",
-            "searchKeywordSQL": "/api/searchKeyword/<keyword>",
-            "insertAssociationSQL": "/api/insertAssociation",
-            "insertFileSQL": "/api/insertFile",
-            "insertTransactionSQL": "/api/insertTransaction",
-            "insertMemberSQL": "/api/insertMemberSQL/<name>/<email>",
-            "updateTransactionSQL": "/api/updateTransactionSQL/<transaction_id>",
-            "deleteMemberSQL": "/api/deleteMember",
-            "getAssociationSQL": "/api/getAssociation"
-        }
+        "message": "Welcome to Sports Accounting API"
     }
     return make_response(jsonify(answer), 200)
 
@@ -50,7 +36,7 @@ def index():
 
 @app.route("/api/test")
 def test():
-    return make_response(jsonify("API works fine!"))
+    return make_response(jsonify("API works fine!"), 200)
 
 
 @app.route("/api/getTransactionsCount", methods=["GET"])
@@ -145,9 +131,9 @@ def delete_member():
         # close the cursor
         cursor.close()
 
-        return jsonify({'message': 'Member removed'})
+        return jsonify({'message': 'Member removed'}), 200
     except (Exception, psycopg2.DatabaseError) as error:
-        return jsonify({'message': str(error)})
+        return jsonify({'message': str(error)}), 500
 
 
 # The function receives a hashed password
@@ -176,10 +162,10 @@ def insert_association():
         # close the cursor
         cursor.close()
 
-        return jsonify({'message': 'File inserted successfully'})
+        return jsonify({'message': 'File inserted successfully'}), 200
     except (Exception, psycopg2.DatabaseError) as error:
         error_message = str(error)
-        return jsonify({'error': error_message})
+        return jsonify({'error': error_message}), 500
 
 
 @app.route("/api/insertMemberSQL", methods=["POST"])
@@ -210,10 +196,10 @@ def insert_member():
         # close the cursor
         cursor.close()
 
-        return jsonify({'message': 'Member saved successfully'})
+        return jsonify({'message': 'Member saved successfully'}), 200
     except (Exception, psycopg2.DatabaseError) as error:
         error_message = str(error)
-        return jsonify({'error': error_message})
+        return jsonify({'error': error_message}), 500
 
 
 @app.route("/api/insertMemberSQLJson", methods=["POST"])
@@ -240,10 +226,10 @@ def insert_member_json():
         # close the cursor
         cursor.close()
 
-        return jsonify({'message': 'Member saved successfully'})
+        return jsonify({'message': 'Member saved successfully'}), 200
     except (Exception, psycopg2.DatabaseError) as error:
         error_message = str(error)
-        return jsonify({'error': error_message})
+        return jsonify({'error': error_message}), 500
 
 
 @app.route("/api/getAssociation", methods=["GET"])
@@ -261,7 +247,7 @@ def get_association():
         return jsonify(data)
     except psycopg2.InterfaceError as error:
         error_message = str(error)
-        return jsonify({'error': error_message})
+        return jsonify({'error': error_message}), 500
 
 
 @app.route("/api/insertTransaction", methods=["POST"])
@@ -300,7 +286,7 @@ def insert_transaction():
         return jsonify({'message': 'File inserted successfully'})
     except (Exception, psycopg2.DatabaseError) as error:
         error_message = str(error)
-        return jsonify({'error': error_message})
+        return jsonify({'error': error_message}), 500
 
 
 @app.route("/api/insertmtsql", methods=["POST"])
@@ -312,7 +298,7 @@ def insert_mt_file():
         # Validate JSON
         if not validate_json(json_transactions):
             print("Validation failed")
-            # return jsonify({'Error': 'Error Occured'})
+            return jsonify({'Error': 'Error Occured'}), 500
 
         # Get amount of transaction in a JSON
         trans_len = len(json_transactions["transactions"])
@@ -360,7 +346,7 @@ def insert_mt_file():
 
         return jsonify({'message': 'File inserted successfully'})
     except (Exception, psycopg2.DatabaseError) as error:
-        return jsonify({'message': error})
+        return jsonify({'message': error}), 500
 
 
 @app.route("/api/insertFile", methods=["POST"])
@@ -397,7 +383,7 @@ def insert_file():
 
         return jsonify({'message': 'File inserted successfully'})
     except (Exception, psycopg2.DatabaseError) as error:
-        return jsonify({'message': error})
+        return jsonify({'message': error}), 500
 
 
 @app.route("/api/getTransactionsSQL", methods=["GET"])
@@ -415,7 +401,56 @@ def get_transactions_sql():
         return jsonify(data)
     except psycopg2.InterfaceError as error:
         error_message = str(error)
-        return jsonify({'error': error_message})
+        return jsonify({'error': error_message}), 500
+
+
+@app.route("/api/getTransactionsSQLXML", methods=["GET"])
+def get_transactions_sql_xml():
+    try:
+        cursor = postgre_connection.cursor()
+
+        # call a stored procedure
+        cursor.execute('SELECT * FROM select_all_transaction()')
+
+        # Get all data from the stored procedure
+        data = cursor.fetchall()
+
+        # Create an XML Tree called Data that contains all DB entries from transactions table
+        root = ET.Element("Data")
+        for row in data:
+            # Create one child transaction that will contain information about one db entry
+            entry = ET.SubElement(root, "transaction")
+            transactionid = ET.SubElement(entry, "transactionid")  # Create a xml element that corresponds to a DB field
+            transactionid.text = str(row[0])  # Give that child a value
+            refrencenumber = ET.SubElement(entry, "refrencenumber")
+            refrencenumber.text = str(row[1])
+            transactiondetail = ET.SubElement(entry, "transactiondetail")
+            transactiondetail.text = str(row[2])
+            description = ET.SubElement(entry, "description")
+            description.text = str(row[3])
+            amount = ET.SubElement(entry, "amount")
+            amount.text = str(row[4])
+            currency = ET.SubElement(entry, "currency")
+            currency.text = str(row[5])
+            transaction_date = ET.SubElement(entry, "transaction_date")
+            transaction_date.text = str(row[6])
+            categoryid = ET.SubElement(entry, "categoryid")
+            categoryid.text = str(row[7])
+            memberid = ET.SubElement(entry, "memberid")
+            memberid.text = str(row[8])
+            typetransaction = ET.SubElement(entry, "typetransaction")
+            typetransaction.text = str(row[9])
+
+        # Convert XML to string
+        xml_string = ET.tostring(root, encoding="utf-8").decode('utf-8')
+        xml_pretty_string = minidom.parseString(xml_string).toprettyxml(indent="  ")
+        print(xml_pretty_string)
+
+        # Set content type to XML and return the response
+        return Response(xml_pretty_string, content_type='application/xml')
+    except psycopg2.InterfaceError as error:
+        error_message = str(error)
+        return jsonify({'error': error_message}), 500
 
 
 # Balance is [4]
@@ -434,7 +469,7 @@ def get_file():
         return jsonify(data)
     except psycopg2.InterfaceError as error:
         error_message = str(error)
-        return jsonify({'error': error_message})
+        return jsonify({'error': error_message}), 500
 
 
 @app.route("/api/getMembers", methods=["GET"])
@@ -452,7 +487,7 @@ def get_members():
         return jsonify(data)
     except psycopg2.InterfaceError as error:
         error_message = str(error)
-        return jsonify({'error': error_message})
+        return jsonify({'error': error_message}), 500
 
 
 @app.route("/api/getCategory", methods=["GET"])
@@ -470,7 +505,7 @@ def get_category():
         return jsonify(data)
     except psycopg2.InterfaceError as error:
         error_message = str(error)
-        return jsonify({'error': error_message})
+        return jsonify({'error': error_message}), 500
 
 
 @app.route("/api/getTransactionOnId/<trans_id>", methods=["GET"])
@@ -485,7 +520,7 @@ def get_transaction_on_id(trans_id):
         return jsonify(data)
     except psycopg2.InterfaceError as error:
         error_message = str(error)
-        return jsonify({'error': error_message})
+        return jsonify({'error': error_message}), 500
 
 
 @app.route("/api/updateTransaction", methods=["PUT"])
@@ -521,7 +556,7 @@ def update_transaction():
         return jsonify({'message': 'Transaction Updated'})
     except psycopg2.InterfaceError as error:
         error_message = str(error)
-        return jsonify({'error': error_message})
+        return jsonify({'error': error_message}), 500
 
 
 @app.route("/api/getTransactionOnIdJoin/<trans_id>", methods=["GET"])
@@ -536,7 +571,7 @@ def get_transaction_on_id_join(trans_id):
         return jsonify(data)
     except psycopg2.InterfaceError as error:
         error_message = str(error)
-        return jsonify({'error': error_message})
+        return jsonify({'error': error_message}), 500
 
 
 @app.route("/api/searchKeyword/<keyword>", methods=["GET"])
@@ -551,7 +586,7 @@ def search_keyword(keyword):
         results = cursor.fetchall()
         return jsonify(results)
     except (Exception, psycopg2.DatabaseError) as error:
-        return jsonify({'message': error})
+        return jsonify({'message': error}), 500
 
 
 if __name__ == '__main__':
