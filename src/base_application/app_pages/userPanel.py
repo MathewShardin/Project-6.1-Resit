@@ -5,8 +5,6 @@ from src.base_application.admin.adminLogin import login_admin_page
 from src.base_application import api_server_ip
 
 
-
-
 def create_window():
     selected_row = None
     """Create a Tkinter window with two equal sections."""
@@ -49,7 +47,6 @@ def create_window():
         from src.base_application.app_pages.transactionDetails import transaction_details
         transaction_details(selected_row)
 
-
     root.resizable(False, False)  # Prevent the window from being resized
 
     # Create a frame to hold the left section
@@ -76,7 +73,6 @@ def create_window():
                     font=("Inter", 14), borderwidth=0, bordercolor="#000000")
     style.map("RoundedButton.TButton", background=[("active", "#333333")])
 
-
     style = ttk.Style()
     style.configure("RoundedButton.TButton", padding=6, relief="flat",
                     background="#000000", foreground="#FFFFFF",
@@ -88,13 +84,15 @@ def create_window():
 
     button2.place(x=250, y=400, width=150, height=24)
 
-    balance_label = tk.Label(left_frame, text="Available Balance:", font=("Inter", 15), bg="#D9D9D9", fg="#000000", justify="left")
+    balance_label = tk.Label(left_frame, text="Available Balance:", font=("Inter", 15), bg="#D9D9D9", fg="#000000",
+                             justify="left")
     balance_label.place(x=70, y=500, width=160, height=24)
 
     balance_number = tk.Label(left_frame, text=balance, font=("Inter", 15), bg="#D9D9D9", fg="#000000", justify="left")
     balance_number.place(x=250, y=500, width=160, height=24)
 
-    search_balance_label = tk.Label(left_frame, text="Sum of found transactions:", font=("Inter", 15), bg="#D9D9D9", fg="#000000", justify="left")
+    search_balance_label = tk.Label(left_frame, text="Sum of found transactions:", font=("Inter", 15), bg="#D9D9D9",
+                                    fg="#000000", justify="left")
     search_balance_label.place(x=70, y=600, width=240, height=24)
 
     search_summary_num = tk.Label(left_frame, text="", font=("Inter", 15), bg="#D9D9D9", fg="#000000", justify="left")
@@ -114,7 +112,6 @@ def create_window():
     table.heading("Description", text="Description")
     table.heading("Ref", text="Ref")
     table.heading("Amount", text="Amount")
-
 
     # Looping through the columns and get the heading
     for column in table["columns"]:
@@ -146,7 +143,7 @@ def create_window():
     # Pack the table into the frame and center it horizontally
     table.pack(fill="both", expand=False)  # Fill the frame with the table
     table.place(x=15, y=100)  # Place the table 15 pixels from the left and 100 pixels from the top
-    table.bind("<ButtonRelease-1>", on_click_table_row, "+") # Bind row selection
+    table.bind("<ButtonRelease-1>", on_click_table_row, "+")  # Bind row selection
     right_frame.pack_propagate(False)  # Prevent the frame from resizing to fit the table
 
     edit_button = ttk.Button(right_frame, text="Edit", command=lambda: edit_button_click())
@@ -155,7 +152,8 @@ def create_window():
     details_button = ttk.Button(right_frame, text="Details", command=lambda: details_button_click())
     details_button.place(x=485, y=35, width=100, height=30)
 
-    button1 = ttk.Button(left_frame, text="Keyboard Search", command=lambda: keyword_search_button(entry.get(), table, search_summary_num))
+    button1 = ttk.Button(left_frame, text="Keyboard Search",
+                         command=lambda: keyword_search_button(entry.get(), table, search_summary_num))
     button1.place(x=70, y=400, width=150, height=24)
 
     # Creating JSON and XML buttons
@@ -164,20 +162,22 @@ def create_window():
     style = ttk.Style()
     style.configure("TRadiobutton", font=("Inter", 18), background="#F0AFAF", borderwidth=0)
 
+    # Set "JSON" as the default selection
+    format_var = tk.StringVar(value="JSON")
+
     # Create a frame to hold the radio buttons
     radio_frame = tk.Frame(right_frame, bg="#F0AFAF")
     radio_frame.place(x=0, y=700, width=600, height=100)
 
     # Create the radio buttons
     json_radio = ttk.Radiobutton(radio_frame, text="JSON", value="JSON", command=lambda: keyword_search_button(),
-                                 style="TRadiobutton")
+                                 style="TRadiobutton", variable=format_var)
     xml_radio = ttk.Radiobutton(radio_frame, text="XML", value="XML", command=lambda: keyword_search_button(),
-                                style="TRadiobutton")
+                                style="TRadiobutton", variable=format_var)
 
     # Pack the radio buttons (left and right)
     json_radio.pack(side="left", padx=100)
     xml_radio.pack(side="right", padx=100)
-
 
     def on_closing():
         root.destroy()
@@ -201,7 +201,6 @@ def create_window():
         # Insert retrieved data into the table
         for result in keyword_table:
             table.insert("", "end", values=result)
-
 
     # Bind the on_closing function to the window close event
     root.protocol("WM_DELETE_WINDOW", on_closing)

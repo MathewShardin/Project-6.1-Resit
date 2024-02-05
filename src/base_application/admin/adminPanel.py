@@ -240,15 +240,18 @@ def adminPanel():
     style = ttk.Style()
     style.configure("TRadiobutton", font=("Inter", 18), background="#F0AFAF", borderwidth=0)
 
+    # Set "JSON" as the default selection
+    format_var = tk.StringVar(value="JSON")
+
     # Create a frame to hold the radio buttons
     radio_frame = tk.Frame(frame2, bg="#F0AFAF")
     radio_frame.place(x=0, y=700, width=600, height=100)
 
     # Create the radio buttons
     json_radio = ttk.Radiobutton(radio_frame, text="JSON", value="JSON", command=lambda: keyword_search_button(),
-                                 style="TRadiobutton")
+                                 style="TRadiobutton", variable=format_var)
     xml_radio = ttk.Radiobutton(radio_frame, text="XML", value="XML", command=lambda: keyword_search_button(),
-                                style="TRadiobutton")
+                                style="TRadiobutton", variable=format_var)
 
     # Pack the radio buttons (left and right)
     json_radio.pack(side="left", padx=100)
