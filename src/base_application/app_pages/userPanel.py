@@ -1,14 +1,16 @@
+import time
 import tkinter as tk
 from tkinter import ttk
 import requests
 from src.base_application.admin.adminLogin import login_admin_page
 from src.base_application import api_server_ip
-
+from xml.etree import ElementTree as ET
 
 
 
 def create_window():
     selected_row = None
+    protocol_retrieve = "JSON"
     """Create a Tkinter window with two equal sections."""
     # Create the main window
     root = tk.Tk()
@@ -49,8 +51,6 @@ def create_window():
         from src.base_application.app_pages.transactionDetails import transaction_details
         transaction_details(selected_row)
 
-
-
     root.resizable(False, False)  # Prevent the window from being resized
 
     # Create a frame to hold the left section
@@ -67,7 +67,7 @@ def create_window():
                      underline=len("Welcome"))
     label.place(x=30, y=200, width=190, height=50)
 
-    # Create a label and text area for the Username
+    # Create a label and text area for the keyword
     entry = tk.Entry(left_frame, font=("Inter", 14))
     entry.place(x=70, y=300, width=280, height=24)
 
@@ -134,7 +134,8 @@ def create_window():
     table.column("Amount", width=100)  # Set the width of the fifth
     table.config(height=20)  # Set the height of the table to 10 rows
 
-    rows = retrieveDB()
+    # Get data from DB using XML or JSON based on user choice
+    rows = retrieveDB(protocol_retrieve)
 
     # # Clear existing rows in the table
     table.delete(*table.get_children())
@@ -159,6 +160,37 @@ def create_window():
     button1 = ttk.Button(left_frame, text="Keyboard Search", command=lambda: keyword_search_button(entry.get(), table, search_summary_num))
     button1.place(x=70, y=400, width=150, height=24)
 
+    # Creating JSON and XML buttons
+    # Create a style for the radio buttons
+    style = ttk.Style()
+    style.configure("TRadiobutton", font=("Inter", 18), background="#F0AFAF", borderwidth=0)
+
+    # Create a frame to hold the radio buttons
+    radio_frame = tk.Frame(right_frame, bg="#F0AFAF")
+    radio_frame.place(x=0, y=700, width=600, height=100)
+
+    # Set "JSON" as the default selection
+    format_var = tk.StringVar(value=protocol_retrieve)
+
+    # Create the radio buttons
+    json_radio = ttk.Radiobutton(radio_frame, text="JSON", value="JSON", variable=format_var,
+                                 command=lambda: radio_button_update("JSON"))
+    xml_radio = ttk.Radiobutton(radio_frame, text="XML", value="XML", variable=format_var,
+                                command=lambda: radio_button_update("XML"))
+
+    # Pack the radio buttons (left and right)
+    json_radio.pack(side="left", padx=100)
+    xml_radio.pack(side="right", padx=100)
+
+    def radio_button_update(protocol):
+        global protocol_retrieve
+        if protocol == "JSON":
+            protocol_retrieve = "JSON"
+        else:
+            protocol_retrieve = "XML"
+        clear_table(table)
+        update_table(table)
+
     def on_closing():
         root.destroy()
 
@@ -167,7 +199,8 @@ def create_window():
         table.delete(*table.get_children())
         # Show all transactions if keyword entry field is empty
         if len(keyword) == 0:
-            keyword_table = retrieveDB()
+            # Get data from DB using XML or JSON based on user choice
+            keyword_table = retrieveDB(protocol_retrieve)
             widget.config(text="")
         else:
             keyword_table = retrieveDB_keyword_search(keyword)
@@ -182,6 +215,24 @@ def create_window():
         for result in keyword_table:
             table.insert("", "end", values=result)
 
+    def update_table(table_inp):
+        global protocol_retrieve
+        rows = retrieveDB(protocol_retrieve)
+        if len(rows) == 0:
+            return
+        # Insert retrieved data into the table
+        for result in rows:
+            table_inp.insert("", "end", values=result)
+
+    def clear_table(table_inp):
+        # Clear input
+        entry.delete(first=0, last=255)
+        # Remove the sum per search label if table is updated
+        search_summary_num.config(text="")
+        # Clear existing rows in the table
+        table_inp.delete(*table_inp.get_children())
+
+
 
     # Bind the on_closing function to the window close event
     root.protocol("WM_DELETE_WINDOW", on_closing)
@@ -190,7 +241,7 @@ def create_window():
     root.mainloop()
 
 
-def retrieveDB():
+def retrieveDB_JSON():
     response = requests.get(api_server_ip + "/api/getTransactionsSQL")
     if len(response.json()) == 0:
         return
@@ -201,6 +252,36 @@ def retrieveDB():
         temp_tuple = (entry[0], entry[6], entry[2], entry[3], entry[1], entry[4])
         rows_out.append(tuple(temp_tuple))
 
+    print('Using JSON')
+    return rows_out
+
+
+def retrieveDB_XML():
+    response = requests.get(api_server_ip + "/api/getTransactionsSQLXML")
+    # Check if the request was not successful
+    if response.status_code != 200:
+        return
+
+    # Parse XML response
+    xml_str = response.content.decode('utf-8')  # Decode the bytes received
+    root = ET.fromstring(xml_str)
+
+    # Check if the XML file is not empty
+    if len(root) == 0:
+        return
+
+    # Convert XML object into an array of tuples to display in table
+    rows_out = []
+    for entry in root.findall('transaction'):
+        trans_id = int(entry.findtext('transactionid'))
+        date = entry.findtext('transaction_date')
+        details = entry.findtext('transactiondetail')
+        desc = entry.findtext('description')
+        ref = entry.findtext('refrencenumber')
+        amount = entry.findtext('amount')
+        temp_tuple = (trans_id, date, details, desc, ref, amount)
+        rows_out.append(tuple(temp_tuple))
+    print('Using XML')
     return rows_out
 
 
@@ -216,3 +297,12 @@ def retrieveDB_keyword_search(keyword):
         rows_out.append(tuple(temp_tuple))
 
     return rows_out
+
+
+def retrieveDB(protocol):
+    if protocol == "JSON":
+        output = retrieveDB_JSON()
+    else:
+        output = retrieveDB_XML()
+    return output
+

@@ -397,7 +397,59 @@ def get_transactions_sql():
         return jsonify(data)
     except psycopg2.InterfaceError as error:
         error_message = str(error)
-        return jsonify({'error': error_message})
+        return jsonify({'error': error_message}), 500
+
+
+@app.route("/api/getTransactionsSQLXML", methods=["GET"])
+def get_transactions_sql_xml():
+    try:
+        cursor = postgre_connection.cursor()
+
+        # call a stored procedure
+        cursor.execute('SELECT * FROM select_all_transaction()')
+
+        # Get all data from the stored procedure
+        data = cursor.fetchall()
+
+        # Create an XML Tree called Data that contains all DB entries from transactions table
+        root = ET.Element("Data")
+        for row in data:
+            # Create one child transaction that will contain information about one db entry
+            entry = ET.SubElement(root, "transaction")
+            transactionid = ET.SubElement(entry, "transactionid")  # Create a xml element that corresponds to a DB field
+            transactionid.text = str(row[0])  # Give that child a value
+            refrencenumber = ET.SubElement(entry, "refrencenumber")
+            refrencenumber.text = str(row[1])
+            transactiondetail = ET.SubElement(entry, "transactiondetail")
+            transactiondetail.text = str(row[2])
+            description = ET.SubElement(entry, "description")
+            description.text = str(row[3])
+            amount = ET.SubElement(entry, "amount")
+            amount.text = str(row[4])
+            currency = ET.SubElement(entry, "currency")
+            currency.text = str(row[5])
+            transaction_date = ET.SubElement(entry, "transaction_date")
+            transaction_date.text = str(row[6])
+            categoryid = ET.SubElement(entry, "categoryid")
+            categoryid.text = str(row[7])
+            memberid = ET.SubElement(entry, "memberid")
+            memberid.text = str(row[8])
+            typetransaction = ET.SubElement(entry, "typetransaction")
+            typetransaction.text = str(row[9])
+
+        # Convert XML to string
+        xml_string = ET.tostring(root, encoding="utf-8").decode('utf-8')
+        xml_pretty_string = minidom.parseString(xml_string).toprettyxml(indent="  ")
+        print(xml_pretty_string)
+
+        # Set content type to XML and return the response
+        return Response(xml_pretty_string, content_type='application/xml')
+
+
+    except psycopg2.InterfaceError as error:
+        error_message = str(error)
+        return jsonify({'error': error_message}), 500
+
 
 
 # Balance is [4]
