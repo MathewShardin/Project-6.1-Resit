@@ -7,6 +7,7 @@ xml_schema_path = os.path.join(os.path.dirname(__file__), 'xmlSchema.xsd')
 json_schema_path = os.path.join(os.path.dirname(__file__), 'mt_json_schema.json')
 json_member_path_schema = os.path.join(os.path.dirname(__file__), 'insert_member_schema.json')
 json_association_schema_path = os.path.join(os.path.dirname(__file__), 'association_json_schema.json')
+json_edit_transaction_schema_path = os.path.join(os.path.dirname(__file__), 'edit_transaction_schema.json')
 xml_member_schema_path = os.path.join(os.path.dirname(__file__), 'member_xml.xsd')
 
 
@@ -59,3 +60,14 @@ def validate_member_xml(xml_file):
     except Exception as e:
         return False
     return True
+
+
+def validate_edit_transaction_json(json_inp):
+    try:
+        with open(json_edit_transaction_schema_path) as r:
+            schema = json.load(r)
+            jsonschema.validate(json_inp, schema)
+        return True
+    except (Exception, jsonschema.ValidationError) as error:
+        print(error)
+        return False
