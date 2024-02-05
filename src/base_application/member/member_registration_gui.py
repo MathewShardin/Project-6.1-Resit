@@ -1,7 +1,8 @@
 import json
 import tkinter as tk
 from tkinter import messagebox
-
+from xml.dom import minidom
+from xml.etree.ElementTree import Element, SubElement, tostring
 import requests
 
 from src.base_application.utils import check_email
@@ -24,16 +25,19 @@ def member_registration():
                     email_entry.delete(first=0, last=255) # will delete what is from position 0 to 255
                     name_entry.delete(first=0, last=255)
                 else:
-                    # Insert to DB
-                    members_json = {
-                        "name": str(name),
-                        "email": str(email)
-                    }
-                    members_json = json.dumps(members_json, indent=4)
-                    print(members_json)
+                    # Make an XML payload with input data
+                    root = Element('member')
+                    name_xml = SubElement(root, 'name')
+                    name_xml.text = str(name)
+                    email_xml = SubElement(root, 'email')
+                    email_xml.text = str(email)
+                    xml_string = tostring(root, encoding="utf-8")
+                    xml_pretty_string = minidom.parseString(xml_string).toprettyxml(indent="  ")
+
+                    # Insert to DB by sending the payload to an API
                     url = api_server_ip + '/api/insertMemberSQL'
-                    headers = {'Content-Type': 'application/json'}
-                    response = requests.post(url, json=members_json, headers=headers)
+                    files = {'file': ('data.xml', xml_pretty_string)}
+                    response = requests.post(url, files=files)
                     email_entry.delete(first=0, last=255) # will delete what is from position 0 to 255
                     name_entry.delete(first=0, last=255)
             else:
