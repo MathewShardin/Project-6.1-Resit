@@ -199,13 +199,14 @@ def insert_member():
     try:
         # Get the XML file from the POST request
         xml_file = request.files['file']
-        print(xml_file)
-        # if not validate_member_xml(xml_file):
-        #     print("Failed Validation")
-        #     return jsonify({'Error': 'Error Occured'}), 500
+        xml_str = xml_file.read().decode('utf-8')
 
-        # Parse the XML content if validation is passed
-        root = ET.fromstring(xml_file.read())
+        # Parse the XML string into a ElementTree(XML) object to validate and access
+        root = ET.fromstring(xml_str)
+        if not validate_member_xml(root):
+            print("Failed Validation")
+            return jsonify({'Error': 'Error Occured'}), 500
+
         # Extract 'Name' and 'Email' fields
         name = str(root.findtext('name'))
         email = str(root.findtext('email'))
