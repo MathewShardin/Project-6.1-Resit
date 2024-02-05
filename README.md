@@ -36,6 +36,8 @@ The application was built with Python and TKinter utilizing Flask to create the 
 * Mathew Shardin
 * Alin Costache
 * Teodor Folea
+* Nathan Pais D'Costa
+* Martin Radoychev
 
 
 
