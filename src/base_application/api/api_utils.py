@@ -2,10 +2,12 @@ import json
 from lxml import etree
 import os
 import jsonschema
+from xmlschema import XMLSchema
 xml_schema_path = os.path.join(os.path.dirname(__file__), 'xmlSchema.xsd')
 json_schema_path = os.path.join(os.path.dirname(__file__), 'mt_json_schema.json')
 json_member_path_schema = os.path.join(os.path.dirname(__file__), 'insert_member_schema.json')
 json_association_schema_path = os.path.join(os.path.dirname(__file__), 'association_json_schema.json')
+xml_member_schema_path = os.path.join(os.path.dirname(__file__), 'member_xml.xsd')
 
 
 def validate_json(json_inp):
@@ -48,3 +50,12 @@ def validate_association_json(json_inp):
     except (Exception, jsonschema.ValidationError) as error:
         print(error)
         return False
+
+
+def validate_member_xml(xml_file):
+    schema = XMLSchema(xml_member_schema_path)
+    try:
+        schema.validate(xml_file)
+    except Exception as e:
+        return False
+    return True

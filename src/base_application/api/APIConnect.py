@@ -13,7 +13,8 @@ app = Flask(__name__)
 from src.base_application.api.dataBaseConnectionPyMongo import get_connection_postgre, get_connection_postgre_user,\
     get_collection
 from src.base_application.api.api_utils import validate_json, validate_member_json, validate_association_json, \
-    validate_xml
+    validate_xml, validate_member_xml
+
 # Get connection strings to Postgre and MongoDB
 transactions_collection = get_collection()
 postgre_connection = get_connection_postgre()
@@ -156,9 +157,9 @@ def insert_association():
         # Get the JSON file from the POST request
         json_data = json.loads(request.get_json())
         # Validate with schema
-        # if not validate_association_json(json_data):
-        #     print("Schema failed")
-            # jsonify({'Error': 'Error Occured'})
+        if not validate_association_json(json_data):
+            print("Schema failed")
+            jsonify({'Error': 'Error Occured'}), 500
 
         accountID = str(json_data['accountID'])
         name = str(json_data['name'])
@@ -184,12 +185,46 @@ def insert_association():
 @app.route("/api/insertMemberSQL", methods=["POST"])
 def insert_member():
     try:
+        # Get the XML file from the POST request
+        xml_file = request.files['file']
+        xml_str = xml_file.read().decode('utf-8')
+
+        # Parse the XML string into a ElementTree(XML) object to validate and access
+        root = ET.fromstring(xml_str)
+        if not validate_member_xml(root):
+            print("Failed Validation")
+            return jsonify({'Error': 'Error Occured'}), 500
+
+        # Extract 'Name' and 'Email' fields
+        name = str(root.findtext('name'))
+        email = str(root.findtext('email'))
+
+        cursor = postgre_connection.cursor()
+
+        # call a stored procedure
+        cursor.execute('CALL insert_into_member(%s,%s)', (name, email))
+
+        # commit the transaction
+        postgre_connection.commit()
+
+        # close the cursor
+        cursor.close()
+
+        return jsonify({'message': 'Member saved successfully'})
+    except (Exception, psycopg2.DatabaseError) as error:
+        error_message = str(error)
+        return jsonify({'error': error_message})
+
+
+@app.route("/api/insertMemberSQLJson", methods=["POST"])
+def insert_member_json():
+    try:
         # Get the JSON file from the POST request
         json_temp = request.get_json()
         json_data = json.loads(json_temp)
         # Validate with schema
         if not validate_member_json(json_data):
-            jsonify({'Error': 'Error Occured'})
+            jsonify({'Error': 'Error Occured'}), 500
 
         name = json_data['name']
         email = json_data['email']
