@@ -200,12 +200,12 @@ def insert_member():
         # Get the XML file from the POST request
         xml_file = request.files['file']
         print(xml_file)
-        # if not validate_member_xml(xml_file):
-        #     print("Failed Validation")
-        #     return jsonify({'Error': 'Error Occured'}), 500
+        if not validate_member_xml(xml_file):
+             print("Failed Validation")
+             return jsonify({'Error': 'Error Occured'}), 500
 
         # Parse the XML content if validation is passed
-        root = ET.fromstring(xml_file.read())
+        root = etree.fromstring(xml_file.read())
         # Extract 'Name' and 'Email' fields
         name = str(root.findtext('name'))
         email = str(root.findtext('email'))
@@ -472,12 +472,17 @@ def get_transaction_on_id(trans_id):
 @app.route("/api/updateTransaction", methods=["PUT"])
 def update_transaction():
     try:
-        cursor = postgre_connection.cursor()
-        # Get data from a post request
-        transactionID = request.form.get('trans_id')
-        description = request.form.get('desc')
-        categoryID = request.form.get('category')
-        memberID = request.form.get('member')
+        # Parse the JSON data received from the POST request
+
+        json_data  = json.loads(request.get_json())
+
+        transactionID = int(json_data['trans_id'])
+        description = str(json_data['desc'])
+        categoryID = str(json_data['category'])
+        memberID = str(json_data['member'])
+
+        print(transactionID, description, categoryID, memberID)
+
         cursor = postgre_connection.cursor()
 
         if categoryID == "None":
@@ -490,8 +495,14 @@ def update_transaction():
         else:
             memberID = int(memberID)
 
+        # call a stored procedure
         cursor.execute('CALL update_transaction(%s,%s,%s,%s)', (
             transactionID, description, categoryID, memberID))
+
+        # commit the transaction
+        postgre_connection.commit()
+
+        # close the cursor
 
         return jsonify({'message': 'Transaction Updated'})
     except psycopg2.InterfaceError as error:

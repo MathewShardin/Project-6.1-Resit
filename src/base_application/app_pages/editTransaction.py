@@ -1,3 +1,4 @@
+import json
 import tkinter as tk
 from tkinter import INSERT
 
@@ -102,19 +103,29 @@ def edit_transaction_page(transaction_id):
         create_window()
 
     def get_input_save(category, member, desc):
-        member_out = None
-        category_out = None
-        if member is not None:
-            member_out = member.split("-")[0]
-        if category is not None:
-            category_out = category.split("-")[0]
+        # Save to DB (assuming category and member are not None)
 
-        # Save to DB
-        payload = {'trans_id': transaction_id, 'desc': desc, 'category': category_out, 'member': member_out}
-        response = requests.put(api_server_ip + "/api/updateTransaction", data=payload)
+        member_out = member.split("-")[0] if member else None
+        category_out = category.split("-")[0] if category else None
+
+        payload = {'desc': desc,
+                   'category': category_out,
+                   'member': member_out,
+                   'trans_id': transaction_id}
+
+        # Convert the payload to a JSON object
+        json_data = json.dumps(payload, indent=4)
+
+        # Update the transaction using a PUT request
+        url = api_server_ip + '/api/updateTransaction'
+        headers = {'Content-Type': 'application/json'}
+        response = requests.put(url, json=json_data, headers=headers)
+
+
+        # Close the window and return to the admin panel
         back_button_click()
 
-    # Start the window
+        # Start the window
     window.mainloop()
 
 
@@ -215,17 +226,28 @@ def edit_transaction_page_admin(transaction_id):
         adminPanel()
 
     def get_input_save(category, member, desc):
-        member_out = None
-        category_out = None
-        if member is not None:
-            member_out = member.split("-")[0]
-        if category is not None:
-            category_out = category.split("-")[0]
 
-        # Save to DB
-        payload = {'trans_id': transaction_id, 'desc': desc, 'category': category_out, 'member': member_out}
-        response = requests.put(api_server_ip + "/api/updateTransaction", data=payload)
+        # Save to DB (assuming category and member are not None)
+
+        member_out = member.split("-")[0] if member else None
+        category_out = category.split("-")[0] if category else None
+
+        payload = {'desc': desc,
+                  'category': category_out,
+                  'member': member_out,
+                  'trans_id': transaction_id}
+
+        # Convert the payload to a JSON object
+        json_data = json.dumps(payload, indent=4)
+
+        # Update the transaction using a PUT request
+        url = api_server_ip + '/api/updateTransaction'
+        headers = {'Content-Type': 'application/json'}
+        response = requests.put(url, json=json_data, headers=headers)
+
+
+        # Close the window and return to the admin panel
         back_button_click()
 
-    # Start the window
+        # Start the window
     window.mainloop()
