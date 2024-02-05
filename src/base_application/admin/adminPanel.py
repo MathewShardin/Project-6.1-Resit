@@ -293,10 +293,10 @@ def adminPanel():
     radio_frame.place(x=0, y=700, width=600, height=100)
 
     # Create the radio buttons
-    json_radio = ttk.Radiobutton(radio_frame, text="JSON", value="JSON", command=lambda: radio_button_update("JSON"),
-                                 style="TRadiobutton", variable=format_var)
-    xml_radio = ttk.Radiobutton(radio_frame, text="XML", value="XML", command=lambda: radio_button_update("XML"),
-                                style="TRadiobutton", variable=format_var)
+    json_radio = ttk.Radiobutton(radio_frame, text="JSON", value="JSON", style="TRadiobutton", variable=format_var,
+                                 command=lambda: radio_button_update("JSON"))
+    xml_radio = ttk.Radiobutton(radio_frame, text="XML", value="XML", style="TRadiobutton", variable=format_var,
+                                command=lambda: radio_button_update("XML"))
 
     # Pack the radio buttons (left and right)
     json_radio.pack(side="left", padx=100)
@@ -341,7 +341,7 @@ def adminPanel():
         # Remove the sum per search label if table is updated
         widget.config(text="")
 
-
+    radio_button_update("JSON")
     # Bind the on_closing function to the window close event
     window.protocol("WM_DELETE_WINDOW", on_closing)
 
