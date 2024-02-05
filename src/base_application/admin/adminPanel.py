@@ -14,6 +14,7 @@ import xml.etree.ElementTree as ET
 
 def adminPanel():
     selected_row = None
+    protocol_retrieve = "JSON"
     window = tk.Tk()
     window.geometry("1200x900")
     window.title("Sports Accounting - Admin Panel")
@@ -63,7 +64,7 @@ def adminPanel():
         from src.base_application.app_pages.editTransaction import edit_transaction_page_admin
         edit_transaction_page_admin(selected_row)
 
-    def retrieveDB():
+    def retrieveDB_JSON():
         response = requests.get(api_server_ip + "/api/getTransactionsSQL")
         if len(response.json()) == 0:
             return
@@ -72,7 +73,43 @@ def adminPanel():
         for entry in response.json():
             temp_tuple = (entry[0], entry[6], entry[2], entry[3], entry[1], entry[4])
             rows_out.append(tuple(temp_tuple))
+        print("Using JSON")
         return rows_out
+
+    def retrieveDB_XML():
+        response = requests.get(api_server_ip + "/api/getTransactionsSQLXML")
+        # Check if the request was not successful
+        if response.status_code != 200:
+            return
+
+        # Parse XML response
+        xml_str = response.content.decode('utf-8')  # Decode the bytes received
+        root = ET.fromstring(xml_str)
+
+        # Check if the XML file is not empty
+        if len(root) == 0:
+            return
+
+        # Convert XML object into an array of tuples to display in table
+        rows_out = []
+        for entry in root.findall('transaction'):
+            trans_id = int(entry.findtext('transactionid'))
+            date = entry.findtext('transaction_date')
+            details = entry.findtext('transactiondetail')
+            desc = entry.findtext('description')
+            ref = entry.findtext('refrencenumber')
+            amount = entry.findtext('amount')
+            temp_tuple = (trans_id, date, details, desc, ref, amount)
+            rows_out.append(tuple(temp_tuple))
+        print("Using XML")
+        return rows_out
+
+    def retrieveDB(protocol):
+        if protocol == "JSON":
+            output = retrieveDB_JSON()
+        else:
+            output = retrieveDB_XML()
+        return output
 
     def details_button_click():
         global selected_row
@@ -131,6 +168,14 @@ def adminPanel():
             with open(file_path, 'wb') as file:
                 file.write(xml_root.encode('utf-8'))
         root.destroy()
+
+    def radio_button_update(protocol):
+        global protocol_retrieve
+        if protocol == "JSON":
+            protocol_retrieve = "JSON"
+        else:
+            protocol_retrieve = "XML"
+        update_button_click(table, search_summary_num)
 
     # ---------------------------------------------------- Frame 1 --------------------------------------------------- #
     label = tk.Label(frame1, text="Admin Panel", font=("Inter", 24, "normal"), bg="#D9D9D9", fg="black", justify="left")
@@ -207,7 +252,7 @@ def adminPanel():
     table.column("Amount", width=100)  # Set the width of the fifth
     table.config(height=20)  # Set the height of the table to 10 rows
 
-    rows = retrieveDB()
+    rows = retrieveDB(protocol_retrieve)
 
     # # Clear existing rows in the table
     table.delete(*table.get_children())
@@ -236,6 +281,27 @@ def adminPanel():
     update_button = ttk.Button(frame2, text="Update", command=lambda: update_button_click(table, search_summary_num))
     update_button.place(x=235, y=35, width=100, height=30)
 
+    # Create a style for the radio buttons
+    style = ttk.Style()
+    style.configure("TRadiobutton", font=("Inter", 18), background="#F0AFAF", borderwidth=0)
+
+    # Set "JSON" as the default selection
+    format_var = tk.StringVar(value=protocol_retrieve)
+
+    # Create a frame to hold the radio buttons
+    radio_frame = tk.Frame(frame2, bg="#F0AFAF")
+    radio_frame.place(x=0, y=700, width=600, height=100)
+
+    # Create the radio buttons
+    json_radio = ttk.Radiobutton(radio_frame, text="JSON", value="JSON", command=lambda: radio_button_update("JSON"),
+                                 style="TRadiobutton", variable=format_var)
+    xml_radio = ttk.Radiobutton(radio_frame, text="XML", value="XML", command=lambda: radio_button_update("XML"),
+                                style="TRadiobutton", variable=format_var)
+
+    # Pack the radio buttons (left and right)
+    json_radio.pack(side="left", padx=100)
+    xml_radio.pack(side="right", padx=100)
+
     def on_closing():
         window.destroy()
 
@@ -244,7 +310,7 @@ def adminPanel():
         table.delete(*table.get_children())
         # Show all transactions if keyword entry field is empty
         if len(keyword) == 0:
-            keyword_table = retrieveDB()
+            keyword_table = retrieveDB(protocol_retrieve)
             # Remove the sum per search label if no keyword is input
             widget.config(text="")
         else:
@@ -261,11 +327,12 @@ def adminPanel():
             table.insert("", "end", values=result)
 
     def update_button_click(table_inp, widget):
+        global protocol_retrieve
         # Clear existing rows in the table
         table_inp.delete(*table_inp.get_children())
         searchBar.delete(first=0, last=255)
         # Show all transactions if keyword entry field is empty
-        rows = retrieveDB()
+        rows = retrieveDB(protocol_retrieve)
         if len(rows) == 0:
             return
         # Insert retrieved data into the table
@@ -278,7 +345,5 @@ def adminPanel():
     # Bind the on_closing function to the window close event
     window.protocol("WM_DELETE_WINDOW", on_closing)
 
-    # Start the main event loop
-    window.mainloop()
     # ------------------------------------------------------ Run ----------------------------------------------------- #
     window.mainloop()
